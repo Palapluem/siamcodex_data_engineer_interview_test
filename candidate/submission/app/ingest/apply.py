@@ -62,7 +62,8 @@ WHERE EXCLUDED.version > meridian.case_current.version
 
 # A tombstone carries identity and version only, so it must not overwrite the
 # known attributes with NULL: the assurance team still needs to see what the
-# case was. COALESCE keeps prior values when the insert supplies none.
+# case was. The UPDATE deliberately lists only the columns a delete actually
+# knows about, so every other column keeps the value the last upsert set.
 _DELETE_CASE = """
 INSERT INTO meridian.case_current (
     source, case_id, version, is_deleted, last_event_id, updated_at)

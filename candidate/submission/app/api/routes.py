@@ -8,6 +8,7 @@ leak the caller never asked for.
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -18,6 +19,20 @@ from .deps import ApiError, error_response, guard
 
 log = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def utc_iso(value: datetime | None) -> str | None:
+    """UTC ISO 8601 with a Z suffix.
+
+    Explicitly UTC rather than a bare .astimezone(), which resolves to the
+    container's local zone - UTC here only by accident of the base image.
+    Both routes share this so the API never emits two timestamp formats.
+    """
+    if value is None:
+        return None
+    return value.astimezone(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
 
 _STATUS_SQL = """
 SELECT source, cursor, state, last_success_at
@@ -68,7 +83,7 @@ async def status(request: Request) -> JSONResponse:
         source: {
             "cursor": cursor,
             "state": state,
-            "last_success_at": last_success.astimezone().isoformat() if last_success else None,
+            "last_success_at": utc_iso(last_success),
         }
         for source, cursor, state, last_success in rows
     }
@@ -175,7 +190,7 @@ async def case_detail(request: Request, source: str | None = None,
         "case_id": cid,
         "unit_id": unit,
         "version": version,
-        "event_time": event_time.astimezone().isoformat().replace("+00:00", "Z") if event_time else None,
+        "event_time": utc_iso(event_time),
         "amount_minor": int(amount_minor) if amount_minor is not None else None,
         "currency": currency,
         "status": row_status,
