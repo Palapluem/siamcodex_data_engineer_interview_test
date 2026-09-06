@@ -25,6 +25,7 @@ evidence/raw/
 # Build output (regenerate with tools/make_submission_zip.py)
 dist/
 
-# Private working documents - kept locally, never published
-docs/SUBMISSION_FORM_ANSWERS.md
-docs/REVIEW_PREP.md
+# Private working documents - kept locally, never published.
+# A directory rather than a list: a new private note is covered by default,
+# instead of relying on someone remembering to add it.
+private/

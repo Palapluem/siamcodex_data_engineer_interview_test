@@ -36,14 +36,12 @@ EXCLUDE_DIRS = {
 EXCLUDE_NAMES = {"test_tokens.json", "source_credentials.json", "identity_service.key", "ca.srl"}
 EXCLUDE_SUFFIXES = {".key", ".pem", ".csr", ".srl", ".pyc", ".log", ".zip"}
 
-# Private working documents. They belong in the repository because they are part
-# of doing the work, but they are addressed to me rather than to the reviewer:
-# one carries personal contact details and draft form answers, the other is
-# interview preparation. Neither belongs in the graded artifact.
-EXCLUDE_PRIVATE = {
-    "docs/SUBMISSION_FORM_ANSWERS.md": "personal details and draft form answers",
-    "docs/REVIEW_PREP.md": "interview preparation notes",
-}
+# Everything under private/ is addressed to me rather than to the reviewer:
+# personal contact details, draft form answers, interview preparation. It stays
+# on disk because it is part of doing the work, and out of both the repository
+# and the archive. A directory rule beats a filename list, which silently misses
+# whatever gets added next.
+PRIVATE_DIR = "private"
 
 # Content patterns that mean a secret escaped into a tracked file.
 # The PEM markers are assembled from fragments so this file does not match
@@ -97,8 +95,8 @@ def untracked_files() -> list[str]:
 
 def excluded(path: Path) -> str | None:
     rel = path.relative_to(ROOT)
-    if (private := EXCLUDE_PRIVATE.get(rel.as_posix())) is not None:
-        return f"private: {private}"
+    if rel.parts and rel.parts[0] == PRIVATE_DIR:
+        return "private working document"
     for part in rel.parts[:-1]:
         if part in EXCLUDE_DIRS:
             return f"directory {part}/"
@@ -213,8 +211,7 @@ def main() -> int:
         names = zf.namelist()
 
     leaked = [n for n in names if ".runtime" in n or n.endswith(".key")]
-    leaked += [n for n in names
-               if any(n.endswith(private) for private in EXCLUDE_PRIVATE)]
+    leaked += [n for n in names if f"/{PRIVATE_DIR}/" in n]
     if leaked:
         print(f"\nARCHIVE CONTAINS SECRETS: {leaked[:5]}", file=sys.stderr)
         return 1
