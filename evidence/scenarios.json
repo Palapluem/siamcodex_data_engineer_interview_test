@@ -1,0 +1,41 @@
+{
+  "started_at": "2026-09-06T06:02:19.817340+00:00",
+  "scenarios": {
+    "outage": {
+      "degraded": true,
+      "isolated": true,
+      "others_kept_polling": true,
+      "recovered": true,
+      "recovery_seconds": 2.1,
+      "totals_stable": true
+    },
+    "revocation": {
+      "before": 200,
+      "denied": true,
+      "denied_after_seconds": 4.9,
+      "within_ttl": true,
+      "others_unaffected": true,
+      "restored": true
+    },
+    "restart": {
+      "back": true,
+      "restart_seconds": 2.6,
+      "healthy_again": true,
+      "totals_identical": true,
+      "cursors_resumed": true
+    },
+    "replay": {
+      "caught_up": true,
+      "replay_seconds": 14.5,
+      "totals_identical": true,
+      "quarantine_stable": true,
+      "event_seen_stable": true
+    },
+    "identity": {
+      "business_status": 503,
+      "failed_closed": true,
+      "health_status": 200,
+      "restored": true
+    }
+  }
+}
