@@ -16,27 +16,49 @@ from typing import Any
 
 REDACTED = "[redacted]"
 
+# Our own sha256 lineage hashes are not secrets, and losing them would make the
+# lineage log useless, so they are exempted from the high-entropy rule.
+_SAFE_LONG = re.compile(r"\A[0-9a-f]{40,64}\Z")
+
 # Contacts in this dataset are addresses at *.example.invalid, but a real
 # deployment would see ordinary addresses, so match the general shape.
-_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
-    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{8,}"),
-    re.compile(r"(?i)\b(token|authorization|api[_-]?key|password|secret)\b(\s*[:=]\s*)\S+"),
-    re.compile(r"\b[A-Za-z0-9_-]{40,}\b"),  # bare high-entropy strings
+_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+# A labelled secret, in prose (token=abc), JSON ("api_key": "abc") or a header.
+# The optional quotes are what makes the JSON form match.
+_LABELLED = re.compile(
+    r"""(?ix)
+    \b(token|authorization|api[_-]?key|password|passwd|secret|credential)\b
+    ["']? \s* [:=] \s* ["']?
+    ([^\s"',;}\]]+)
+    """
 )
 
-_SAFE_LONG = re.compile(r"^[0-9a-f]{40,64}$")  # our own sha256 lineage hashes
+_BEARER = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{8,}")
+
+# Anything long and random-looking that no rule above claimed.
+_HIGH_ENTROPY = re.compile(r"\b[A-Za-z0-9_-]{40,}\b")
+
+
+def _mask_labelled(match: re.Match[str]) -> str:
+    return f"{match.group(1)}={REDACTED}"
+
+
+def _mask_high_entropy(match: re.Match[str]) -> str:
+    return match.group(0) if _SAFE_LONG.match(match.group(0)) else REDACTED
 
 
 def redact(value: str) -> str:
-    for pattern in _PATTERNS:
-        if pattern.pattern.endswith(r"\b") or "40," in pattern.pattern:
-            value = pattern.sub(lambda m: m.group(0) if _SAFE_LONG.match(m.group(0)) else REDACTED, value)
-        elif "token|authorization" in pattern.pattern:
-            value = pattern.sub(lambda m: f"{m.group(1)}{m.group(2)}{REDACTED}", value)
-        else:
-            value = pattern.sub(REDACTED, value)
-    return value
+    """Strip credential and contact material from arbitrary text.
+
+    Ordered from most specific to least: a labelled secret keeps its label so
+    the log still says *what* was withheld, and the catch-all entropy rule runs
+    last so it only sees what nothing else claimed.
+    """
+    value = _EMAIL.sub(REDACTED, value)
+    value = _BEARER.sub(f"Bearer {REDACTED}", value)
+    value = _LABELLED.sub(_mask_labelled, value)
+    return _HIGH_ENTROPY.sub(_mask_high_entropy, value)
 
 
 def _scrub(value: Any) -> Any:

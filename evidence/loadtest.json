@@ -1,0 +1,33 @@
+{
+  "measured_at": "2026-09-06T06:05:14.937757+00:00",
+  "path": "/reports/daily",
+  "caller": "analyst_all",
+  "clients": 8,
+  "duration_seconds": 32.0,
+  "requests": 2082,
+  "throughput_rps": 65.0,
+  "errors": 0,
+  "latency_ms": {
+    "p50": 103.5,
+    "p95": 203.2,
+    "p99": 293.4,
+    "max": 1735.2,
+    "mean": 116.5
+  },
+  "resources": {
+    "postgres": {
+      "samples": 10,
+      "cpu_percent_mean": 72.5,
+      "cpu_percent_peak": 81.5,
+      "mem_mib_mean": 60.5,
+      "mem_mib_peak": 61.9
+    },
+    "pipeline": {
+      "samples": 10,
+      "cpu_percent_mean": 46.4,
+      "cpu_percent_peak": 61.8,
+      "mem_mib_mean": 54.6,
+      "mem_mib_peak": 63.2
+    }
+  }
+}
