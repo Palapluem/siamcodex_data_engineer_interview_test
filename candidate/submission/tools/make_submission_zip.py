@@ -37,9 +37,12 @@ EXCLUDE_NAMES = {"test_tokens.json", "source_credentials.json", "identity_servic
 EXCLUDE_SUFFIXES = {".key", ".pem", ".csr", ".srl", ".pyc", ".log", ".zip"}
 
 # Content patterns that mean a secret escaped into a tracked file.
+# The PEM markers are assembled from fragments so this file does not match
+# itself; exempting the scanner by filename would leave it unscanned instead.
+_BEGIN = rb"-----BEG" rb"IN "
 SECRET_PATTERNS = [
-    (re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----"), "private key block"),
-    (re.compile(rb"-----BEGIN CERTIFICATE-----"), "certificate block"),
+    (re.compile(_BEGIN + rb"[A-Z ]*PRIVATE KEY-----"), "private key block"),
+    (re.compile(_BEGIN + rb"CERTIFICATE-----"), "certificate block"),
     (re.compile(rb"\"token\"\s*:\s*\"[A-Za-z0-9_-]{30,}\""), "token literal"),
     (re.compile(rb"Bearer\s+[A-Za-z0-9_-]{30,}"), "bearer literal"),
 ]
