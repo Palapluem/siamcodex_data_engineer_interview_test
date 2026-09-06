@@ -49,6 +49,10 @@ SECRET_PATTERNS = [
 # Files that legitimately discuss these patterns without containing a secret.
 SCAN_SKIP = {".md", ".pdf"}
 
+# A line carrying this marker is exempt. Used only where a token-shaped string
+# is the point of the line, such as the redaction tests.
+ALLOW_MARKER = b"fake-credential-for-test"
+
 
 def tracked_files() -> list[Path]:
     """Prefer git's view so .gitignore is honoured; fall back to a walk."""
@@ -97,13 +101,28 @@ def excluded(path: Path) -> str | None:
 
 
 def scan(path: Path) -> list[str]:
+    """Report credential-shaped content, line by line.
+
+    Scanning per line rather than per file lets a single line opt out with an
+    explicit marker. Tests for the redaction filter necessarily contain
+    token-shaped strings; exempting those files wholesale would leave them
+    unscanned, whereas a visible per-line marker stays greppable and reviewable.
+    """
     if path.suffix in SCAN_SKIP:
         return []
     try:
         blob = path.read_bytes()
     except OSError:
         return []
-    return [label for pattern, label in SECRET_PATTERNS if pattern.search(blob)]
+
+    findings: list[str] = []
+    for line in blob.splitlines():
+        if ALLOW_MARKER in line:
+            continue
+        for pattern, label in SECRET_PATTERNS:
+            if pattern.search(line) and label not in findings:
+                findings.append(label)
+    return findings
 
 
 def verify_fixtures() -> bool:

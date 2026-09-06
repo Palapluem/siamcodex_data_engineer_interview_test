@@ -26,8 +26,9 @@ class TestRedact:
         assert "[redacted]" in redact(text)
 
     def test_bearer_tokens_are_removed(self):
-        out = redact("Authorization: Bearer aB3-x_9YqLmNoPqRsTuVwXyZ0123456789")
-        assert "aB3-x_9YqLmNoPqRsTuVwXyZ0123456789" not in out
+        token = "aB3-x_9YqLmNoPqRsTuVwXyZ0123456789"  # fake-credential-for-test
+        out = redact(f"Authorization: Bearer {token}")
+        assert token not in out
 
     @pytest.mark.parametrize("text", [
         'token: sk-live-9YqLmNoPqRsTuVwXyZ0123456789abcdef',
@@ -76,7 +77,7 @@ class TestJsonFormatter:
 
     def test_exception_text_is_redacted(self):
         try:
-            raise ValueError("bad token Bearer aB3x9YqLmNoPqRsTuVwXyZ0123456789")
+            raise ValueError("bad token Bearer aB3x9YqLmNoPqRsTuVwXyZ0123456789")  # fake-credential-for-test
         except ValueError:
             record = logging.LogRecord("t", logging.ERROR, __file__, 1, "boom", None,
                                        __import__("sys").exc_info())
