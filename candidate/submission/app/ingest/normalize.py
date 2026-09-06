@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any, Callable
+from typing import Any
 
 from ..config import KNOWN_UNITS
 
@@ -152,7 +153,7 @@ def _parse_iso(raw: Any, errors: _Errors, field_name: str) -> datetime | None:
     if parsed.tzinfo is None:
         errors.add(INVALID_EVENT_TIME, field_name)
         return None
-    return parsed.astimezone(timezone.utc)
+    return parsed.astimezone(UTC)
 
 
 def _parse_epoch_ms(raw: Any, errors: _Errors, field_name: str) -> datetime | None:
@@ -160,7 +161,7 @@ def _parse_epoch_ms(raw: Any, errors: _Errors, field_name: str) -> datetime | No
         errors.add(INVALID_EVENT_TIME, field_name)
         return None
     try:
-        return datetime.fromtimestamp(raw / 1000, tz=timezone.utc)
+        return datetime.fromtimestamp(raw / 1000, tz=UTC)
     except (OverflowError, OSError, ValueError):
         errors.add(INVALID_EVENT_TIME, field_name)
         return None

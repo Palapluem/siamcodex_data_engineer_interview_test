@@ -6,7 +6,7 @@ tools/peek_source.py output recorded in docs/CONTRACT_FACTS.md), not invented.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -44,7 +44,7 @@ class TestVendorMapping:
         assert isinstance(event, CanonicalEvent)
         assert (event.case_id, event.unit_id, event.status) == ("C00001", "AST-1", "completed")
         assert event.amount_minor == 148598
-        assert event.event_time == datetime(2026, 6, 30, 15, 43, tzinfo=timezone.utc)
+        assert event.event_time == datetime(2026, 6, 30, 15, 43, tzinfo=UTC)
 
     def test_birch_decimal_string_becomes_exact_minor_units(self):
         event = normalize("birch", envelope(BIRCH_V1))
@@ -56,14 +56,14 @@ class TestVendorMapping:
 
     def test_birch_offset_is_normalised_to_utc(self):
         event = normalize("birch", envelope(BIRCH_V1))
-        assert event.event_time == datetime(2026, 6, 24, 19, 57, tzinfo=timezone.utc)
+        assert event.event_time == datetime(2026, 6, 24, 19, 57, tzinfo=UTC)
 
     def test_cobalt_epoch_ms(self):
         event = normalize("cobalt", envelope(COBALT_V1))
         assert isinstance(event, CanonicalEvent)
         assert event.amount_minor == 40985
         assert event.status == "open"  # 10
-        assert event.event_time == datetime(2026, 6, 3, 1, 26, tzinfo=timezone.utc)
+        assert event.event_time == datetime(2026, 6, 3, 1, 26, tzinfo=UTC)
 
     @pytest.mark.parametrize("raw,expected", [("O", "open"), ("D", "completed"), ("X", "cancelled")])
     def test_birch_status_vocabulary(self, raw, expected):

@@ -187,7 +187,8 @@ def main() -> int:
     print("  verified: no .runtime and no key files in the archive")
 
     if size > MAX_BYTES:
-        print(f"\nArchive exceeds the 100 MB form limit by {(size - MAX_BYTES) / 1_048_576:.1f} MiB", file=sys.stderr)
+        over = (size - MAX_BYTES) / 1_048_576
+        print(f"\nArchive exceeds the 100 MB form limit by {over:.1f} MiB", file=sys.stderr)
         return 1
     return 0
 

@@ -18,9 +18,10 @@ and a full replay from cursor 0 all converge to the same numbers.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Sequence
+from datetime import UTC, datetime
+from typing import Any
 
 from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
@@ -130,7 +131,7 @@ async def apply_page(
         result = normalize(source, item)
         (accepted if isinstance(result, CanonicalEvent) else rejected).append(result)  # type: ignore[arg-type]
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # psycopg opens a transaction implicitly; this block makes the boundary
     # explicit so the cursor update cannot drift outside it during a later edit.

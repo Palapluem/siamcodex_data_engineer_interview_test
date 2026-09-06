@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import logging
+import os
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from .api.auth import IdentityClient
+from .api.deps import ApiError, error_response
+from .api.routes import router
 from .config import Settings, load_settings
 from .db import build_pool, run_migrations, seed_source_state
+from .ingest.client import build_ssl_context
 from .ingest.poller import IngestionSupervisor
 from .obs import logging as obs_logging
 
@@ -37,6 +42,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                "clearance_filters_aggregates": settings.clearance_filters_aggregates},
     )
 
+    identity: IdentityClient | None = None
+    if settings.runs_api:
+        identity = IdentityClient(settings, build_ssl_context(settings.lab_ca_path))
+        app.state.identity = identity
+
     supervisor: IngestionSupervisor | None = None
     if settings.runs_worker:
         supervisor = IngestionSupervisor(settings, pool)
@@ -47,6 +57,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     finally:
         if supervisor is not None:
             await supervisor.stop()
+        if identity is not None:
+            await identity.aclose()
         await pool.close()
         log.info("shutdown complete")
 
@@ -61,6 +73,12 @@ app = FastAPI(
 )
 
 
+@app.exception_handler(ApiError)
+async def api_error_handler(_: object, exc: ApiError) -> JSONResponse:
+    """Routes raise ApiError after auditing; this renders the stable body."""
+    return error_response(exc.status, exc.error)
+
+
 @app.get("/health")
 async def health() -> JSONResponse:
     """Liveness only.
@@ -71,3 +89,9 @@ async def health() -> JSONResponse:
     lives on the operator-only /status route.
     """
     return JSONResponse({"status": "ok"})
+
+
+# Routes are mounted only for a role that serves the API. A worker-only
+# deployment still exposes /health so its container health check works.
+if os.environ.get("ROLE", "all").strip().lower() in {"all", "api"}:
+    app.include_router(router)

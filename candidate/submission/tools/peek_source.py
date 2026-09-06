@@ -26,8 +26,10 @@ SHARED = {"op", "version", "schema_version", "classification", "contact", "curre
 
 def fetch(url: str, token: str, cursor: str = "0", limit: int = 3) -> dict:
     query = urllib.parse.urlencode({"cursor": cursor, "limit": limit})
-    request = urllib.request.Request(f"{url}?{query}", headers={"Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(request, context=ssl.create_default_context(cafile=CA), timeout=10) as response:
+    request = urllib.request.Request(
+        f"{url}?{query}", headers={"Authorization": f"Bearer {token}"})
+    context = ssl.create_default_context(cafile=CA)
+    with urllib.request.urlopen(request, context=context, timeout=10) as response:
         return json.load(response)
 
 
@@ -40,19 +42,22 @@ def main() -> None:
 
         print(f"===== {source} =====")
         print(f"envelope keys : {sorted(first)}")
-        print(f"next_cursor   : {page['next_cursor']!r}   has_more: {page['has_more']}   items: {len(page['items'])}")
+        print(f"next_cursor   : {page['next_cursor']!r}   has_more: {page['has_more']}"
+              f"   items: {len(page['items'])}")
         print(f"payload       : {json.dumps(payload, sort_keys=True)}")
 
         observed = set(payload)
         missing = EXPECTED[source] - observed
         extra = observed - EXPECTED[source] - SHARED
-        print(f"expected vendor fields {'ALL PRESENT' if not missing else f'MISSING {sorted(missing)}'}")
+        verdict = "ALL PRESENT" if not missing else f"MISSING {sorted(missing)}"
+        print(f"expected vendor fields {verdict}")
         if extra:
             print(f"unexpected extra fields: {sorted(extra)}")
 
         # An empty page must leave the cursor unchanged (contract), so confirm it.
         far = fetch(config["url"], config["token"], cursor="999999")
-        print(f"empty page    : items={len(far['items'])} next_cursor={far['next_cursor']!r} has_more={far['has_more']}")
+        print(f"empty page    : items={len(far['items'])} "
+              f"next_cursor={far['next_cursor']!r} has_more={far['has_more']}")
         print()
 
 

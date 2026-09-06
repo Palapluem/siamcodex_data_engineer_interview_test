@@ -15,7 +15,7 @@ import random
 import ssl
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,7 @@ from ..config import Settings
 log = logging.getLogger(__name__)
 
 
-class Outcome(str, Enum):
+class Outcome(StrEnum):
     OK = "ok"
     RATE_LIMITED = "rate_limited"   # 429, self-inflicted or contended
     TRANSIENT = "transient"         # 503 injected fault or gateway upstream error
