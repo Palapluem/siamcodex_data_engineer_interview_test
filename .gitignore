@@ -1,6 +1,8 @@
-# Lab credentials and CA - never commit (bootstrap.py generates these locally)
-candidate/.runtime/
-.runtime/
+# Lab credentials and CA - never commit (bootstrap.py generates these locally).
+# The wildcard matters: archiving a runtime as .runtime.bak during a rebuild
+# leaves real credentials in a directory that '.runtime/' alone does not match.
+candidate/.runtime*
+.runtime*
 
 # Local env / secrets
 .env
