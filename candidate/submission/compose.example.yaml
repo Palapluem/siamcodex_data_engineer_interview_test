@@ -1,0 +1,28 @@
+# Copy to compose.yaml and replace the application; this is not a working pipeline.
+name: de-interview-submission
+services:
+  pipeline:
+    build: .
+    # Add a Dockerfile and your own service implementation in this directory.
+    ports: ["127.0.0.1:8088:8080"]
+    networks: [transit, app]
+    # Example allocations: adjust for your implementation and available hardware.
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 128
+    read_only: true
+    tmpfs: [/tmp:size=64m]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ../.runtime/client/ca.crt:/run/secrets/lab_ca.crt:ro
+      - ../.runtime/client/source_credentials.json:/run/secrets/source_credentials.json:ro
+      - ../.runtime/client/identity_service.key:/run/secrets/identity_service.key:ro
+      - pipeline_data:/var/lib/pipeline
+networks:
+  transit:
+    external: true
+    name: de-interview-transit
+  app: {}
+volumes:
+  pipeline_data: {}

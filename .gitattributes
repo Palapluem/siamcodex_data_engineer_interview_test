@@ -1,0 +1,5 @@
+# The lab fixtures are hash-verified against candidate/data/manifest.json.
+# Any CRLF conversion changes their SHA-256 and breaks interviewer verification.
+* -text
+*.jsonl -text
+*.pdf binary

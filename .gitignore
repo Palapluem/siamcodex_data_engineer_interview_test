@@ -1,0 +1,23 @@
+# Lab credentials and CA - never commit (bootstrap.py generates these locally)
+candidate/.runtime/
+.runtime/
+
+# Local env / secrets
+.env
+*.env
+!*.env.example
+candidate/submission/.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Evidence artifacts that are regenerated (keep the committed report, not raw dumps)
+evidence/raw/
+*.log

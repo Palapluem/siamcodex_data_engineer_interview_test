@@ -1,0 +1,21 @@
+{
+  "seed": 73129,
+  "total_events": 10000,
+  "sources": {
+    "aster": {
+      "events": 3334,
+      "phase1": 3134,
+      "sha256": "f8fa9bb6e4e4af93f167e1a8346540fa0f1078bac645f29d7fe13a76177191ed"
+    },
+    "birch": {
+      "events": 3333,
+      "phase1": 3133,
+      "sha256": "be6aa163a61ff26862df8a794740654df364ce364b109322a044dfe8bbd9c43e"
+    },
+    "cobalt": {
+      "events": 3333,
+      "phase1": 3133,
+      "sha256": "11779a9c0b413f91117e1b9dcee40f6a3809e6777ba88f3a35244fd07459c2b7"
+    }
+  }
+}

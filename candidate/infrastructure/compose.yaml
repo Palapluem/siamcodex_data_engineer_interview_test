@@ -1,0 +1,118 @@
+name: de-interview-lab
+x-common: &common
+  build:
+    context: .
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 64
+  mem_limit: 128m
+  cpus: 0.20
+  labels:
+    interview.fixture: "true"
+  healthcheck:
+    test: [CMD, python, -c, "import socket,os; s=socket.create_connection(('127.0.0.1',int(os.getenv('PORT','8080'))),2); s.close()"]
+    interval: 5s
+    timeout: 3s
+    retries: 10
+services:
+  source-aster:
+    <<: *common
+    environment:
+      MODE: source
+      SOURCE: aster
+    networks:
+      aster_private:
+        aliases: [source.internal]
+    volumes:
+      - ../data/aster.jsonl:/data/aster.jsonl:ro
+      - ../.runtime/server/aster.key:/runtime/aster.key:ro
+      - ../.runtime/server/control:/runtime/control:ro
+  vpn-aster:
+    <<: *common
+    environment:
+      MODE: gateway
+      PORT: "8443"
+    depends_on:
+      source-aster:
+        condition: service_healthy
+    networks: [transit, aster_private]
+    volumes:
+      - ../.runtime/server/tls:/runtime/tls:ro
+  source-birch:
+    <<: *common
+    environment:
+      MODE: source
+      SOURCE: birch
+    networks:
+      birch_private:
+        aliases: [source.internal]
+    volumes:
+      - ../data/birch.jsonl:/data/birch.jsonl:ro
+      - ../.runtime/server/birch.key:/runtime/birch.key:ro
+      - ../.runtime/server/control:/runtime/control:ro
+  vpn-birch:
+    <<: *common
+    environment:
+      MODE: gateway
+      PORT: "8443"
+    depends_on:
+      source-birch:
+        condition: service_healthy
+    networks: [transit, birch_private]
+    volumes:
+      - ../.runtime/server/tls:/runtime/tls:ro
+  source-cobalt:
+    <<: *common
+    environment:
+      MODE: source
+      SOURCE: cobalt
+    networks:
+      cobalt_private:
+        aliases: [source.internal]
+    volumes:
+      - ../data/cobalt.jsonl:/data/cobalt.jsonl:ro
+      - ../.runtime/server/cobalt.key:/runtime/cobalt.key:ro
+      - ../.runtime/server/control:/runtime/control:ro
+  vpn-cobalt:
+    <<: *common
+    environment:
+      MODE: gateway
+      PORT: "8443"
+    depends_on:
+      source-cobalt:
+        condition: service_healthy
+    networks: [transit, cobalt_private]
+    volumes:
+      - ../.runtime/server/tls:/runtime/tls:ro
+  identity:
+    <<: *common
+    environment:
+      MODE: identity
+      PORT: "8443"
+    networks: [transit]
+    volumes:
+      - ../.runtime/server/tls:/runtime/tls:ro
+      - ../.runtime/server/identity_service.key:/runtime/identity_service.key:ro
+      - ../.runtime/server/principals.json:/runtime/principals.json:ro
+      - ../.runtime/server/control:/runtime/control:ro
+  probe:
+    <<: *common
+    profiles: [tools]
+    healthcheck:
+      disable: true
+    networks: [transit]
+    volumes:
+      - ../.runtime/client:/client:ro
+      - ../scripts/probe.py:/app/probe.py:ro
+    command: [python, /app/probe.py]
+networks:
+  transit:
+    name: de-interview-transit
+    internal: true
+  aster_private:
+    internal: true
+  birch_private:
+    internal: true
+  cobalt_private:
+    internal: true
