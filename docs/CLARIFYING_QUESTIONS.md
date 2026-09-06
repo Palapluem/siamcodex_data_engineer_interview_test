@@ -7,11 +7,19 @@ change, not a rewrite.
 
 Send questions 1–5 early; 6–9 can wait for the review.
 
+> **Answered.** The shared clarification sheet resolved questions 1–4, and
+> confirmed our default in every case. Question 5 was answered implicitly by
+> the Q3 wording ("other role/purpose combinations are forbidden"). Questions
+> 6–9 remain open and are still worth asking at the review. The answers and
+> what they changed are in [CLARIFICATION_SHEET.md](CLARIFICATION_SHEET.md);
+> the questions are left as written, because the reasoning that produced them
+> is the part worth reading.
+
 ---
 
 ## Blocking — the numbers differ depending on the answer
 
-### 1. What is the business day?
+### 1. What is the business day? ✅ ANSWERED — Asia/Bangkok, as we defaulted
 
 `event_time` describes the business occurrence. Aster sends UTC, Birch sends
 `+07:00`, Cobalt sends Unix milliseconds — all three encode the same instant, so
@@ -35,7 +43,7 @@ cooperative is Thai, all money is THB, and Birch already reports in `+07:00`.
 have different business days**, that is a bigger change — it makes the day a
 property of the unit, not of the deployment, and we would want to know now.
 
-### 2. Does `clearance` filter aggregates, or only case detail?
+### 2. Does `clearance` filter aggregates, or only case detail? ✅ ANSWERED — aggregates too, as we defaulted
 
 The brief says sensitive cases need tighter handling than routine summary
 information. That reads two ways, and they give different totals for the same
@@ -55,7 +63,7 @@ via `CLEARANCE_FILTERS_AGGREGATES`.
 totals for the same unit. If leadership wants one number per unit regardless of
 who asks, the answer is interpretation 1 and we flip the flag.
 
-### 3. What does "service value" mean for cancelled work?
+### 3. What does "service value" mean for cancelled work? ✅ ANSWERED — cancelled carries value, in its own group
 
 `/reports/daily` returns `amount_minor` per `(date, unit, status)`, so cancelled
 cases carry a value. Should a cancelled case contribute to regional "service
@@ -65,7 +73,7 @@ value", or is the amount retained only for reconciliation?
 decide. We do not zero cancelled amounts, because silently dropping them would make
 the API disagree with the source systems.
 
-### 4. Should auditors see `/reports/daily`?
+### 4. Should auditors see `/reports/daily`? ✅ ANSWERED — yes, as we defaulted
 
 The contract fixes `/status` as operator-only and `/cases` as auditor-only, but is
 silent on reports for auditors.
@@ -74,7 +82,7 @@ silent on reports for auditors.
 auditor holds `units=["*"]` and `clearance=restricted`. Denying it would make the
 assurance team unable to reconcile a case against the aggregate it appears in.
 
-### 5. Which purposes are allowed for business data?
+### 5. Which purposes are allowed for business data? ✅ ANSWERED — operations and audit only
 
 The `wrong_purpose` fixture is an analyst with `purpose=marketing` and otherwise
 full scope, so it plainly exists to be denied.
@@ -84,7 +92,7 @@ Please confirm the intended list rather than an implicit "not marketing".
 
 ---
 
-## Important — affects design, not today's numbers
+## Still open — affects design, not today's numbers
 
 ### 6. What is the freshness expectation in production?
 

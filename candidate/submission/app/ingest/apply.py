@@ -118,6 +118,25 @@ WHERE source = %(source)s
 """
 
 
+def order_for_apply(events: Sequence[CanonicalEvent]) -> list[CanonicalEvent]:
+    """Deterministic order for applying one page.
+
+    Sorting by version means a page carrying both v1 and its v2 correction
+    applies the higher version last, so it wins regardless of delivery order.
+
+    The final key is the one the clarification sheet made explicit: at an *equal*
+    version a delete must not take priority over an upsert. Without it, a page
+    holding upsert@v2 and delete@v2 for one case would resolve differently
+    depending on which arrived first - the delete would land, and the upsert
+    would then be rejected by the strictly-greater guard. Sorting deletes last
+    within a version makes the upsert land first and the delete a no-op, which
+    is the specified behaviour.
+
+    Sorting is stable, so events that tie on all four keys keep page order.
+    """
+    return sorted(events, key=lambda e: (e.source, e.case_id, e.version, e.is_delete))
+
+
 async def apply_page(
     conn: AsyncConnection,
     source: str,
@@ -148,10 +167,7 @@ async def apply_page(
                     for e in accepted
                 ])
 
-                # Ordering by version means that when one page carries both v1
-                # and its v2 correction, the higher version is applied last and
-                # wins regardless of delivery order within the page.
-                for event in sorted(accepted, key=lambda e: (e.case_id, e.version)):
+                for event in order_for_apply(accepted):
                     if event.is_delete:
                         await cur.execute(_DELETE_CASE, {
                             "source": event.source, "case_id": event.case_id,

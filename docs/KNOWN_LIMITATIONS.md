@@ -8,20 +8,26 @@ documented one reads as a decision. Each entry says what would fix it.
 ## Correctness edges
 
 **A tombstone arriving before any upsert leaves an identity-only row.**
-If a delete at version 2 is delivered before the version 1 upsert, the row is
-created with `is_deleted=true` and null attributes, and the later version 1
-upsert is correctly ignored because 1 is not greater than 2. The case is absent
-from reports and returns 404, which is the right *outcome*, but we never learn
-what the case was. It cannot happen with the current fixture (seq order
-guarantees v1 first) and it would require genuinely out-of-order delivery.
-*Fix:* keep tombstones in a side table and reconcile, rather than materialising
-them into `case_current`.
+If a delete at version 2 arrives before the version 1 upsert, the row is created
+with `is_deleted=true` and null attributes, and the later version 1 upsert is
+correctly ignored. We never learn what the case was.
+
+*No longer a limitation as such:* the clarification sheet specifies exactly this
+behaviour - “a valid first event establishes the state for an unseen identity,
+including when that event is a deletion tombstone”, and a lower version must not
+overwrite it. It is kept here because the operational consequence is real: an
+assurance query on such a case shows a deletion with no history behind it.
 
 **Equal versions are ignored, not merged.**
 An event whose version equals the stored version is dropped. That is what makes
-duplicate delivery safe, but if a vendor ever corrected a record *without*
-incrementing the version, we would silently miss it. *Fix:* compare payload
-hashes on equal versions and quarantine a mismatch as a contract violation.
+duplicate delivery safe.
+
+*Confirmed as the required rule* by the clarification sheet - “a lower or equal
+version must not overwrite the stored state”, and “a higher seq does not break a
+version tie”. The residual risk is unchanged: if a vendor ever corrected a record
+*without* incrementing the version we would silently miss it, and no alert would
+fire. *Fix:* compare payload hashes on equal versions and quarantine a mismatch
+as a contract violation. That remains a proposal.
 
 **No cross-vendor case resolution.**
 `C00001` in aster, birch and cobalt are three separate cases, which is correct

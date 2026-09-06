@@ -68,6 +68,7 @@ Full operating detail, recovery and credential rotation: [docs/RUNBOOK.md](docs/
 |---|---|
 | The design and a diagram | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Why it is built this way, and what was rejected | [docs/DECISIONS.md](docs/DECISIONS.md) |
+| The clarification sheet, and how we answer it | [docs/CLARIFICATION_SHEET.md](docs/CLARIFICATION_SHEET.md) |
 | What we assumed, and what breaks if we are wrong | [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md) |
 | What we would ask the business first | [docs/CLARIFYING_QUESTIONS.md](docs/CLARIFYING_QUESTIONS.md) |
 | Trust boundaries, classification, retention, audit | [docs/TRUST_BOUNDARIES.md](docs/TRUST_BOUNDARIES.md) |

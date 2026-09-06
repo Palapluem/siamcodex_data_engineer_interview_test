@@ -4,6 +4,11 @@ Each entry states the decision, the alternative that was actually considered,
 and why it lost **for this server and this data size**. Several would flip at a
 different scale, and those thresholds are named.
 
+> **Updated after the clarification sheet**, as it asked. D5, D10 and D11 carry
+> confirmation notes, and **D16** records the one behaviour the sheet changed.
+> No earlier decision had to be reversed; the full reconciliation is in
+> [CLARIFICATION_SHEET.md](CLARIFICATION_SHEET.md).
+
 ---
 
 ## D1 — PostgreSQL as the store
@@ -109,6 +114,11 @@ ledger keeps the audit trail without paying for the rebuild.
 `case_event` stores payload hashes, so we can prove which delivery produced the
 current state, but not reproduce a superseded one.
 
+**Confirmed compatible with the clarification sheet**, which requires retaining
+the deletion version so a replayed lower or equal version cannot restore a
+deleted case. Current state carries that version, so the protection is durable
+without replaying history.
+
 ---
 
 ## D6 — No materialised aggregate
@@ -202,6 +212,12 @@ further. That is precisely the "two people export the same report and get
 different answers" complaint in the brief. A default that is invisible is how
 that happens; a named setting with a documented rationale is how it stops.
 
+**Confirmed by the clarification sheet:** Asia/Bangkok, derived from the
+business occurrence and unaffected by the source's original offset, with
+corrections landing on the original business day rather than the ingestion day.
+The flag stays, because the reasoning that produced it is still why the answer
+matters, but its other branch is now dead configuration.
+
 See [CLARIFYING_QUESTIONS.md](CLARIFYING_QUESTIONS.md) question 1.
 
 ---
@@ -219,8 +235,11 @@ routes, and under-disclosure is the safer failure when the answer is unknown.
 
 **The cost, measured.** For `analyst_aster` on AST-1 that is 1,180 cases and
 90,216,320 rather than 1,475 and 112,767,732 — so two analysts can legitimately
-see different totals for the same unit. That tension is real, it is question 2
-on the clarification list, and it is one environment variable to flip.
+see different totals for the same unit.
+
+**Confirmed by the clarification sheet**, in its own words: “an analyst with
+internal clearance must see neither the count nor the value of restricted cases
+in report totals.” The tension is real and intended.
 
 ---
 
@@ -281,3 +300,47 @@ there is nothing to win by crowding it — and each 429 costs a full second of
 **Why not.** It would pass the exercise while proving nothing. The injected
 fault is there to test retry, so the right answer is to hit it 15 times across
 three sources and recover from all 15, which the logs show.
+
+---
+
+## D16 - Deletes sort last within a version
+
+**Added after the clarification sheet**, which made explicit a rule the original
+materials left open: *a delete does not take priority over an upsert at an equal
+version.*
+
+**The problem.** The database guard -
+`WHERE EXCLUDED.version > case_current.version` on both the upsert and the delete
+- was already correct, and it alone settles the question across pages. It does
+not settle it *within* one page. Events were ordered by `(case_id, version)`, so
+an upsert and a delete at the same version tied and kept arrival order:
+
+| Arrival order | What lands | Outcome |
+|---|---|---|
+| upsert, then delete | upsert applies; delete fails the strict guard | alive |
+| delete, then upsert | delete applies; upsert fails the strict guard | deleted |
+
+Same input, two answers, decided by the order a vendor happened to emit them.
+
+**Decision.** `order_for_apply()` sorts by
+`(source, case_id, version, is_delete)`. Deletes sort last within a version, so
+the upsert always lands first and the delete is always the no-op the rule
+requires. The outcome no longer depends on arrival order at all.
+
+**Alternative considered: resolve it in SQL**, or collapse each page to one event
+per identity before writing.
+
+**Why not.** Collapsing in memory would work, but it moves the tie-break away
+from the statement that enforces the version rule, leaving two places that have
+to agree. Ordering is one line, is a pure function, and is unit-testable without
+a database - `tests/unit/test_clarified_rules.py` asserts that both arrival
+orders produce the same sequence.
+
+**Impact on measured results: none.** No case in seed 73129 carries both an
+upsert and a delete at the same version, verified by replaying the fixtures, so
+every figure in the resource report stands. It matters for data released during
+evaluation, where the combination is no longer excluded.
+
+**Worth saying plainly:** the guard was right and the ordering was not, and the
+gap only became visible once the rule was stated. That is what a clarification
+sheet is for.
