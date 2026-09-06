@@ -24,3 +24,7 @@ evidence/raw/
 
 # Build output (regenerate with tools/make_submission_zip.py)
 dist/
+
+# Private working documents - kept locally, never published
+docs/SUBMISSION_FORM_ANSWERS.md
+docs/REVIEW_PREP.md

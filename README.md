@@ -76,6 +76,7 @@ Full operating detail, recovery and credential rotation: [docs/RUNBOOK.md](docs/
 | What is missing and why | [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) |
 | Verified facts about the lab and the data | [docs/CONTRACT_FACTS.md](docs/CONTRACT_FACTS.md) |
 | Time spent and AI disclosure | [docs/TIME_LOG.md](docs/TIME_LOG.md) · [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md) |
+| How it was planned, before any code | [BUILD_PROMPT.md](BUILD_PROMPT.md) · [docs/PLAN.md](docs/PLAN.md) |
 | The problem statement | [candidate/REQUIREMENTS.md](candidate/REQUIREMENTS.md) · [candidate/TECHNICAL_CONTRACT.md](candidate/TECHNICAL_CONTRACT.md) |
 | The implementation | [candidate/submission/app/](candidate/submission/app/) |
 

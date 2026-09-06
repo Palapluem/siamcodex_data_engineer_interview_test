@@ -36,6 +36,15 @@ EXCLUDE_DIRS = {
 EXCLUDE_NAMES = {"test_tokens.json", "source_credentials.json", "identity_service.key", "ca.srl"}
 EXCLUDE_SUFFIXES = {".key", ".pem", ".csr", ".srl", ".pyc", ".log", ".zip"}
 
+# Private working documents. They belong in the repository because they are part
+# of doing the work, but they are addressed to me rather than to the reviewer:
+# one carries personal contact details and draft form answers, the other is
+# interview preparation. Neither belongs in the graded artifact.
+EXCLUDE_PRIVATE = {
+    "docs/SUBMISSION_FORM_ANSWERS.md": "personal details and draft form answers",
+    "docs/REVIEW_PREP.md": "interview preparation notes",
+}
+
 # Content patterns that mean a secret escaped into a tracked file.
 # The PEM markers are assembled from fragments so this file does not match
 # itself; exempting the scanner by filename would leave it unscanned instead.
@@ -88,6 +97,8 @@ def untracked_files() -> list[str]:
 
 def excluded(path: Path) -> str | None:
     rel = path.relative_to(ROOT)
+    if (private := EXCLUDE_PRIVATE.get(rel.as_posix())) is not None:
+        return f"private: {private}"
     for part in rel.parts[:-1]:
         if part in EXCLUDE_DIRS:
             return f"directory {part}/"
@@ -199,11 +210,15 @@ def main() -> int:
         print("  excluded: " + ", ".join(f"{n}x {r}" for r, n in sorted(skipped.items())))
 
     with zipfile.ZipFile(archive) as zf:
-        leaked = [n for n in zf.namelist() if ".runtime" in n or n.endswith(".key")]
+        names = zf.namelist()
+
+    leaked = [n for n in names if ".runtime" in n or n.endswith(".key")]
+    leaked += [n for n in names
+               if any(n.endswith(private) for private in EXCLUDE_PRIVATE)]
     if leaked:
         print(f"\nARCHIVE CONTAINS SECRETS: {leaked[:5]}", file=sys.stderr)
         return 1
-    print("  verified: no .runtime and no key files in the archive")
+    print("  verified: no .runtime, no key files, no private working documents")
 
     if size > MAX_BYTES:
         over = (size - MAX_BYTES) / 1_048_576

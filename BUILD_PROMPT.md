@@ -1,15 +1,16 @@
 # BUILD PROMPT — Meridian operational view
 
-A single, self-contained instruction set for building the Siam Codex data-engineer
-take-home. Hand this file to an implementing agent (or work through it yourself)
-together with [docs/CONTRACT_FACTS.md](docs/CONTRACT_FACTS.md), which holds the
-verified ground truth this prompt refers to.
+The full specification, written **before** any implementation, against which
+this submission was built. It pairs with [docs/CONTRACT_FACTS.md](docs/CONTRACT_FACTS.md),
+which holds the verified ground truth it refers to.
 
-> **This is the specification as written before implementation.** It is kept
-> unchanged as a record of what was planned, except for the layout below and the
-> divergence note at the end. For what was actually built, read
-> [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); for why, read
-> [docs/DECISIONS.md](docs/DECISIONS.md).
+> Kept as written, as a record of what was planned, with two exceptions: the
+> repository layout below was updated to match what exists, and section 13
+> records where the build diverged. It is also the brief the AI assistant worked
+> from — see [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md).
+>
+> For what was actually built, read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md);
+> for why, read [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ---
 
@@ -171,7 +172,6 @@ siamcodex_data_engineer_interview_test/
     ├── RESOURCE_REPORT.md          # measured, with commands and hardware
     ├── KNOWN_LIMITATIONS.md
     ├── TIME_LOG.md  AI_DISCLOSURE.md
-    └── SUBMISSION_FORM_ANSWERS.md
 ```
 
 ---

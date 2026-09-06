@@ -9,6 +9,13 @@ proposal. That is what the rubric rewards.
 Companion documents: [BUILD_PROMPT.md](../BUILD_PROMPT.md) (what to build),
 [CONTRACT_FACTS.md](CONTRACT_FACTS.md) (verified ground truth).
 
+> **This is the plan as written at 12:30, before implementation.** The build
+> finished far ahead of it — every phase checkpoint was met, but at 13:20
+> rather than 22:00. [TIME_LOG.md](TIME_LOG.md) has the actual timings and an
+> honest account of why. The plan is kept unedited because the schedule it
+> set, the risk register and the cut-scope ladder are what the work was
+> steered by, and a plan rewritten after the fact proves nothing.
+
 ---
 
 ## Schedule
@@ -254,7 +261,7 @@ not an hour. **Reuse** the ADR and decision-log style already established in
    must return nothing meaningful.
 4. Push to `https://github.com/Palapluem/siamcodex_data_engineer_interview_test`
    and make it public (or invite the interviewer if it stays private).
-5. Submit the Google Form using `SUBMISSION_FORM_ANSWERS.md`.
+5. Submit the Google Form.
 
 ---
 
