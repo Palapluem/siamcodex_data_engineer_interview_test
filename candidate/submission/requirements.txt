@@ -1,0 +1,6 @@
+# Exact pins. No ranges: the interviewer rebuilds this image and must get the
+# same dependency set we measured.
+fastapi==0.115.6
+uvicorn==0.34.0
+psycopg[binary,pool]==3.2.3
+httpx==0.28.1
