@@ -49,7 +49,7 @@ analyst:
 **Our default:** clearance filters aggregates too — an `internal` caller sees only
 `classification='internal'` cases. Rationale: it makes `clearance` mean something
 consistent on both routes, and under-disclosure is the safer failure. Configured
-via `RESTRICTED_IN_AGGREGATES`.
+via `CLEARANCE_FILTERS_AGGREGATES`.
 
 **Risk we want checked:** this means two analysts can legitimately see different
 totals for the same unit. If leadership wants one number per unit regardless of

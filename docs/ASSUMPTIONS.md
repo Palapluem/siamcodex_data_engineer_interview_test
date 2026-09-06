@@ -9,7 +9,7 @@ questions behind the contested ones.
 | # | Assumption | Why we chose it | If wrong | Change cost |
 |---|---|---|---|---|
 | A1 | Business day is **Asia/Bangkok** | Thai cooperative, THB throughout, Birch already reports `+07:00` | 540 report rows instead of 558; every per-day figure shifts | **configurable** — `BUSINESS_TIMEZONE` |
-| A2 | `clearance` filters **aggregates as well as** case detail | Makes clearance mean one thing on both routes; under-disclosure is the safer failure | An `internal` analyst under-reports their unit by ~20% of value | **configurable** — `RESTRICTED_IN_AGGREGATES` |
+| A2 | `clearance` filters **aggregates as well as** case detail | Makes clearance mean one thing on both routes; under-disclosure is the safer failure | An `internal` analyst under-reports their unit by ~20% of value | **configurable** — `CLEARANCE_FILTERS_AGGREGATES` |
 | A3 | Allowed purposes for business data are `{operations, audit}` | The `wrong_purpose` fixture exists to be denied | A denied caller should have been allowed | **configurable** — policy table |
 | A4 | Auditors may read `/reports/daily` | Contract fixes only `/status` and `/cases`; audit is a legitimate purpose | One row of the policy table flips | **configurable** — policy table |
 | A5 | Business identity is `(source, case_id)` | Contract says so explicitly; fixture case IDs collide across all three vendors | Cross-vendor merging would need a master mapping and a survivorship rule | structural — would need a new identity resolution layer |

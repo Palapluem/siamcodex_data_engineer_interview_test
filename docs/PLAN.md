@@ -82,7 +82,7 @@ land.
 - `Dockerfile`: `python:3.12-slim` pinned by digest, non-root user, no build
   toolchain in the final layer, `requirements.txt` fully pinned.
 - `app/config.py`: env-driven settings — `BUSINESS_TIMEZONE`,
-  `RESTRICTED_IN_AGGREGATES`, `POLL_IDLE_SECONDS`, `PAGE_LIMIT`, per-source rate
+  `CLEARANCE_FILTERS_AGGREGATES`, `POLL_IDLE_SECONDS`, `PAGE_LIMIT`, per-source rate
   budget, `INTROSPECT_CACHE_SECONDS`, `ROLE`.
 - `app/db.py`: async pool, startup migration runner that is safe to re-run.
 - `/health` returning 200.

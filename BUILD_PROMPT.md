@@ -5,6 +5,12 @@ take-home. Hand this file to an implementing agent (or work through it yourself)
 together with [docs/CONTRACT_FACTS.md](docs/CONTRACT_FACTS.md), which holds the
 verified ground truth this prompt refers to.
 
+> **This is the specification as written before implementation.** It is kept
+> unchanged as a record of what was planned, except for the layout below and the
+> divergence note at the end. For what was actually built, read
+> [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); for why, read
+> [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ---
 
 ## 0. Role and mission
@@ -126,6 +132,7 @@ siamcodex_data_engineer_interview_test/
 │       ├── compose.yaml
 │       ├── Dockerfile
 │       ├── requirements.txt        # fully pinned, hash-free but exact versions
+│       ├── setup_env.py            # generates .env with a random DB password
 │       ├── app/
 │       │   ├── __init__.py  main.py  config.py  db.py
 │       │   ├── migrations/001_init.sql
@@ -135,20 +142,23 @@ siamcodex_data_engineer_interview_test/
 │       │   │   ├── apply.py        # transactional upsert + cursor advance
 │       │   │   └── poller.py       # per-source loop, state machine
 │       │   ├── api/
-│       │   │   ├── auth.py         # introspection, cache, policy engine
-│       │   │   ├── deps.py  health.py  status.py  reports.py  cases.py
+│       │   │   ├── auth.py         # introspection, cache, policy table
+│       │   │   ├── deps.py         # guard: authenticate, authorise, audit
+│       │   │   └── routes.py       # /status, /reports/daily, /cases
 │       │   └── obs/
-│       │       ├── logging.py      # structured JSON + redaction
-│       │       ├── audit.py        # append-only access audit
-│       │       └── metrics.py      # counters/histograms surfaced via /status
+│       │       ├── logging.py      # structured JSON + redaction filter
+│       │       └── audit.py        # append-only access audit
 │       ├── tests/
 │       │   ├── unit/               # no network, no docker
-│       │   └── integration/        # against the running lab
+│       │   └── integration/        # marked; skip cleanly without the lab
 │       └── tools/
-│           ├── lab_control.py      # flip phase / outage / revoke (test harness only)
-│           ├── loadtest.py         # 8 clients x 30s, p50/p95/p99
-│           ├── resource_sample.py  # docker stats sampler -> CSV
-│           └── verify_fixtures.py  # sha256 vs manifest
+│           ├── verify_fixtures.py     # sha256 vs manifest
+│           ├── peek_source.py         # inspect a real page before adapting
+│           ├── lab_control.py         # phase / outage / revoke (test harness)
+│           ├── authz_matrix.py        # all five callers x all routes
+│           ├── scenarios.py           # outage, restart, replay, revocation
+│           ├── loadtest.py            # 8 clients x 30s + resource sampling
+│           └── make_submission_zip.py # the form artifact
 └── docs/
     ├── CONTRACT_FACTS.md           # verified ground truth (already written)
     ├── PLAN.md                     # execution plan
@@ -400,7 +410,7 @@ Allowed purposes for business data: `operations`, `audit`. `marketing` is denied
 that is what the `wrong_purpose` fixture exists to prove.
 
 Clearance: `internal` sees `classification='internal'` only; `restricted` sees
-everything. Controlled by `RESTRICTED_IN_AGGREGATES`; see assumption 2.
+everything. Controlled by `CLEARANCE_FILTERS_AGGREGATES`; see assumption 2.
 
 ---
 
@@ -541,3 +551,24 @@ matrix, restart safety, or the assumptions and questions documents.
 - `docs/AI_DISCLOSURE.md` is honest and specific.
 - `.runtime` is not committed; `git log -p | grep` finds no secret.
 - You can explain and modify every line under review.
+
+---
+
+## 13. Where the build diverged from this spec
+
+Recorded honestly rather than edited away.
+
+- **Routes live in one `routes.py`**, not four files. Three routes sharing one
+  `guard` and three SQL statements did not justify four modules.
+- **`metrics.py` was not built.** It was first on the cut list and the contract's
+  `/status` fields plus structured logs covered what an operator needs. Noted in
+  [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+- **`resource_sample.py` was folded into `loadtest.py`**, so CPU and memory are
+  sampled during the same run they describe rather than inferred across two.
+- **`setup_env.py` was added.** The database needed a real password, and the
+  exercise's own `.gitignore` already anticipates `submission/.env`.
+- **Extra tools were added** as the work needed them: `peek_source.py`,
+  `authz_matrix.py`, `scenarios.py`, `make_submission_zip.py`.
+- **The clearance flag was renamed** `RESTRICTED_IN_AGGREGATES` →
+  `CLEARANCE_FILTERS_AGGREGATES`, because the original name did not say which
+  direction `true` meant.
