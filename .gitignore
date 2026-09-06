@@ -21,3 +21,6 @@ venv/
 # Evidence artifacts that are regenerated (keep the committed report, not raw dumps)
 evidence/raw/
 *.log
+
+# Build output (regenerate with tools/make_submission_zip.py)
+dist/
